@@ -1,0 +1,290 @@
+<!doctype html>
+
+<html lang="ur" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Quran Hub — پڑھیں، سنیں، ترجمہ</title>
+  <meta name="description" content="Full Quran reader with translations, audio (TTS), and benefits per surah. POWER BY DARK-EMPIRE">
+  <style>
+    :root{
+      --bg:#071021; --card:#0f1724; --accent:#0ea5e9; --accent2:#ef4444; --muted:#9fb0c8; --text:#e6eef6;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;font-family: 'Noto Naskh Arabic', 'Scheherazade New', system-ui, -apple-system,'Segoe UI', Roboto, Arial; background:linear-gradient(180deg,#021027 0%, #071b2a 100%);color:var(--text)}
+    .wrap{max-width:1200px;margin:18px auto;padding:18px}
+    header{display:flex;gap:12px;align-items:center;justify-content:space-between}
+    .brand{display:flex;align-items:center;gap:12px}
+    .logo{background:linear-gradient(90deg,var(--accent),var(--accent2));padding:8px 14px;border-radius:10px;font-weight:800}
+    h1{margin:0;font-size:18px}
+    .subtitle{color:var(--muted);font-size:13px}.controls{display:flex;gap:8px;align-items:center}
+select,input,button{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--text);padding:8px;border-radius:10px}
+input[type=search]{min-width:220px}
+
+main{display:grid;grid-template-columns:320px 1fr;gap:18px;margin-top:16px}
+nav{background:var(--card);padding:12px;border-radius:12px;height:calc(100vh - 170px);overflow:auto}
+.surah-item{padding:12px;border-radius:10px;margin-bottom:8px;cursor:pointer}
+.surah-item:hover{background:rgba(255,255,255,0.02)}
+.surah-item.active{background:linear-gradient(90deg,#06253b55,#3b063b18);box-shadow:0 6px 18px rgba(0,0,0,0.45)}
+
+article{background:var(--card);padding:18px;border-radius:12px;height:calc(100vh - 170px);overflow:auto}
+.verse{padding:12px 8px;border-bottom:1px dashed rgba(255,255,255,0.03)}
+.verse.ar{font-size:30px;text-align:right;direction:rtl;line-height:1.9}
+.meta{display:flex;gap:8px;align-items:center;color:var(--muted);font-size:13px;margin-bottom:8px}
+
+.panel{background:rgba(255,255,255,0.02);padding:12px;border-radius:10px;margin-bottom:12px}
+.benefit{font-size:15px;color:#fff;margin-top:6px}
+
+footer{text-align:center;margin-top:14px;color:var(--muted);font-size:13px}
+.footer-brand{margin-top:8px;font-weight:700}
+
+.small{font-size:13px;color:var(--muted)}
+
+@media (max-width:980px){main{grid-template-columns:1fr}nav{height:auto}article{height:auto}header{flex-direction:column;align-items:stretch}}
+
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <div class="logo">POWER BY DARK-EMPIRE</div>
+        <div>
+          <h1>Quran Hub — پڑھیں، سنیں، ترجمہ</h1>
+          <div class="subtitle">سارا قرآن، ترجمے، آڈیو (TTS)، اور ہر سورہ کے فائدے</div>
+        </div>
+      </div><div class="controls">
+    <label class="small">ترجمہ</label>
+    <select id="translationSelect">
+      <option value="none">— کوئی — (صرف عربی)</option>
+      <option value="en.sahih">English (Sahih International)</option>
+      <option value="en.asad">English (Asad)</option>
+      <option value="ur.jalandhri">Urdu (Jalandhri)</option>
+      <option value="bn.bengali">Bengali</option>
+      <option value="fr.hamidullah">French</option>
+    </select>
+
+    <label class="small">فونٹ</label>
+    <input id="fontRange" type="range" min="18" max="44" value="30">
+
+    <button id="themeBtn">Night</button>
+    <input id="globalSearch" type="search" placeholder="آیات، الفاظ یا سورہ تلاش کریں (Enter)">
+    <button id="downloadSurah">Download</button>
+  </div>
+</header>
+
+<main>
+  <nav>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <strong>تمام سورہ</strong>
+      <small id="status" class="small">لوڈنگ...</small>
+    </div>
+    <div id="surahList"></div>
+  </nav>
+
+  <article>
+    <div class="meta">
+      <div id="currentTitle" style="font-weight:800">—</div>
+      <div style="margin-left:auto" class="small">آیات: <span id="verseCount">0</span></div>
+    </div>
+
+    <div class="panel">
+      <div style="display:flex;gap:8px;align-items:center">
+        <button id="playBtn">Play (Listen)</button>
+        <button id="pauseBtn">Pause</button>
+        <label class="small">Reciter (browser TTS)</label>
+        <label style="margin-left:auto" class="small">Translation shown: <span id="translationLabel">None</span></label>
+      </div>
+      <div id="benefitBox" class="benefit">سورہ کا فائدہ ظاہر ہوگا یہاں۔</div>
+    </div>
+
+    <div style="margin-bottom:10px;display:flex;gap:8px">
+      <input id="ayahSearch" placeholder="اس سورہ میں تلاش کریں" style="flex:1;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.06)">
+      <button id="clearAyah">Clear</button>
+    </div>
+
+    <div id="verses"></div>
+
+    <footer>
+      <div class="small">Template — deploy to Netlify / GitHub Pages / Vercel. If you want server audio or official translations bundled, I can add them.</div>
+      <div class="footer-brand">POWER BY DARK-EMPIRE ♥️✨</div>
+    </footer>
+  </article>
+</main>
+
+  </div>  <script>
+    // --- Simple app to fetch Quran (Arabic + optional translation) from alquran.cloud ---
+    // NOTE: This uses public API at api.alquran.cloud. If you deploy in production, consider caching or bundling data.
+
+    const apiBase = 'https://api.alquran.cloud/v1';
+    let quranData = null; // will hold the arabic quran
+    let translationData = null; // selected translation
+    let currentSurah = 1; // 1-indexed
+    let playing = false;
+
+    const surahListEl = document.getElementById('surahList');
+    const versesEl = document.getElementById('verses');
+    const currentTitle = document.getElementById('currentTitle');
+    const verseCount = document.getElementById('verseCount');
+    const statusEl = document.getElementById('status');
+    const translationSelect = document.getElementById('translationSelect');
+    const translationLabel = document.getElementById('translationLabel');
+    const fontRange = document.getElementById('fontRange');
+    const ayahSearch = document.getElementById('ayahSearch');
+    const clearAyah = document.getElementById('clearAyah');
+    const playBtn = document.getElementById('playBtn');
+    const pauseBtn = document.getElementById('pauseBtn');
+    const globalSearch = document.getElementById('globalSearch');
+    const downloadSurahBtn = document.getElementById('downloadSurah');
+    const benefitBox = document.getElementById('benefitBox');
+
+    // Minimal benefits dictionary (you can expand these). Keys are surah numbers.
+    const benefits = {
+      1: 'فاتحہ کی تلاوت برکت، دعا کی قبولیت کے لئے فضیلت ہے۔',
+      2: 'بقرہ کی تلاوت گھر کو شیطان سے محفوظ رکھتی ہے؛ روزانہ کی تلاوت میں بہت برکت ہے۔',
+      3: 'آلِ عمران کی تلاوت علم اور ایمان بڑھانے والی مانی جاتی ہے۔',
+      112: 'اخلاص سادہ اور خالص توحید بیان کرتی ہے — ایمان کی اساس۔',
+      113: 'فلق شیطانی شر سے پناہ مانگنے کا درخت ہے۔',
+      114: 'ناس شیطانی وسوسے سے پناہ مانگنے کے لئے بہتی اہمیت رکھتی ہے۔'
+    };
+
+    // Generic fallback message
+    function getBenefit(n){
+      return benefits[n] || 'اس سورہ کی تلاوت کے خاص روحانی فوائد کے متعلق مختلف روایات ہیں — نیت کے ساتھ پڑھیے، دعا کریں۔';
+    }
+
+    async function fetchArabicQuran(){
+      statusEl.textContent = 'عربی قرآن لوڈ ہو رہا ہے...';
+      try{
+        const res = await fetch(apiBase + '/quran/quran-uthmani');
+        const data = await res.json();
+        if(data.code !== 200) throw new Error('API error');
+        quranData = data.data; // surahs array
+        statusEl.textContent = 'لوڈ مکمل';
+        renderSurahList();
+        loadSurah(1);
+      }catch(err){
+        statusEl.textContent = 'لوڈ ناکام';
+        alert('Arabic Quran load failed: '+err.message);
+      }
+    }
+
+    function renderSurahList(){
+      surahListEl.innerHTML = '';
+      quranData.surahs.forEach(s=>{
+        const div = document.createElement('div');
+        div.className = 'surah-item' + (s.number===currentSurah? ' active':'');
+        div.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center"><div><strong>${s.name}</strong><div style="font-size:12px;color:var(--muted)">${s.number}. ${s.englishName}</div></div><div style="font-size:12px;color:var(--muted)">${s.ayahs.length} آیات</div></div>`;
+        div.onclick = ()=>{ loadSurah(s.number); renderSurahList(); window.scrollTo({top:0,behavior:'smooth'}) };
+        surahListEl.appendChild(div);
+      });
+    }
+
+    async function loadTranslation(edition){
+      if(edition==='none'){ translationData = null; translationLabel.textContent = 'None'; renderVerses(); return; }
+      translationLabel.textContent = 'Loading...';
+      try{
+        const res = await fetch(apiBase + '/quran/' + edition);
+        const data = await res.json();
+        if(data.code !== 200) throw new Error('Translation load failed');
+        translationData = data.data; translationLabel.textContent = data.data.edition.language + ' — ' + data.data.edition.name; renderVerses();
+      }catch(err){ translationLabel.textContent = 'Failed'; alert('Translation load failed: '+err.message); }
+    }
+
+    function loadSurah(n){
+      currentSurah = n; const s = quranData.surahs.find(x=>x.number===n);
+      currentTitle.textContent = `${s.englishName} — ${s.name}`;
+      verseCount.textContent = s.ayahs.length;
+      benefitBox.textContent = getBenefit(n);
+      renderVerses();
+    }
+
+    function renderVerses(){
+      const s = quranData.surahs.find(x=>x.number===currentSurah);
+      versesEl.innerHTML = '';
+      const q = ayahSearch.value.trim();
+      s.ayahs.forEach(a=>{
+        const ar = a.text;
+        const tr = translationData ? (translationData.surahs.find(ss=>ss.number===a.surah)?.ayahs.find(aa=>aa.number===a.number)?.text || '') : '';
+        if(q){ if(!(ar.includes(q) || tr.includes(q))) return; }
+        const div = document.createElement('div');
+        div.className = 'verse';
+        div.innerHTML = `<div class="verse ar" style="font-size:${fontRange.value}px">${ar} <span style="font-size:14px;color:var(--muted);"> — (${a.numberInSurah})</span></div>${ tr ? '<div style="margin-top:8px;color:var(--muted);line-height:1.6">'+tr+'</div>' : '' }`;
+        versesEl.appendChild(div);
+      });
+    }
+
+    // Play using Web Speech API (TTS). Arabic voice availability varies by device.
+    let speechUtterance = null;
+    async function playSurah(){
+      if(playing) return;
+      const s = quranData.surahs.find(x=>x.number===currentSurah);
+      const text = s.ayahs.map(a=>a.text).join('
+');
+      speechUtterance = new SpeechSynthesisUtterance(text);
+      speechUtterance.lang = 'ar-SA';
+      speechSynthesis.cancel();
+      speechSynthesis.speak(speechUtterance);
+      playing = true;
+      speechUtterance.onend = ()=>{ playing=false }
+    }
+    function pauseSurah(){ speechSynthesis.cancel(); playing=false }
+
+    // Global search across all surahs
+    async function globalSearchFn(q){
+      if(!q) return;
+      // naive local search through fetched quranData
+      for(const s of quranData.surahs){
+        if(s.ayahs.find(a=>a.text.includes(q))) { loadSurah(s.number); renderSurahList(); return; }
+      }
+      alert('کچھ نہیں ملا');
+    }
+
+    // Download current surah as txt (Arabic + optional translation)
+    function downloadSurah(){
+      const s = quranData.surahs.find(x=>x.number===currentSurah);
+      let content = s.ayahs.map(a=>a.numberInSurah + '. ' + a.text).join('
+
+');
+      if(translationData){
+        const trSurah = translationData.surahs.find(ss=>ss.number===currentSurah);
+        if(trSurah) content += '
+
+--- Translation ---
+
+' + trSurah.ayahs.map(a=>a.text).join('
+
+');
+      }
+      const blob = new Blob([content], {type:'text/plain;charset=utf-8'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = `${s.number}-${s.englishName}.txt`; a.click(); URL.revokeObjectURL(url);
+    }
+
+    // Events
+    translationSelect.addEventListener('change', ()=>{
+      const val = translationSelect.value; loadTranslation(val);
+    });
+    fontRange.addEventListener('input', renderVerses);
+    ayahSearch.addEventListener('input', renderVerses);
+    clearAyah.addEventListener('click', ()=>{ ayahSearch.value=''; renderVerses(); });
+    playBtn.addEventListener('click', playSurah);
+    pauseBtn.addEventListener('click', pauseSurah);
+    globalSearch.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ globalSearchFn(globalSearch.value.trim()); } });
+    downloadSurahBtn.addEventListener('click', downloadSurah);
+
+    // Theme toggle simple
+    document.getElementById('themeBtn').addEventListener('click', ()=>{
+      document.body.classList.toggle('night');
+      document.getElementById('themeBtn').textContent = document.body.classList.contains('night')? 'Day' : 'Night';
+    });
+
+    // Initialize
+    (async ()=>{
+      await fetchArabicQuran();
+      // default: no translation
+      translationLabel.textContent = 'None';
+    })();
+
+  </script></body>
+</html>
